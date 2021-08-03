@@ -1,0 +1,42 @@
+<p id="notice"><%= notice %></p>
+
+<h1 class="title">Books</h1>
+
+<div class="block">
+  <%= link_to 'New Book +', new_book_path %>
+</div>
+<table class="table is-cell-bordered no-background">
+  <thead>
+    <th colspan="2" class="has-text-centered">
+      Books
+    </th>
+    <th colspan="2" class="has-text-centered">
+      Authors
+    </th>
+
+      <th colspan ="3" rowspan="2" style="vertical-align:middle;" class="has-text-centered">Actions</th>
+    <tr>
+      <th>ID</th>
+      <th>Title</th>
+      <th>ID</th>
+      <th>Name</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @books.each do |book| %>
+      <tr>
+        <td><%= book.id %></td>
+        <td><%= book.title %></td>
+        <td><%= book.author_id %></td>
+        <td><%= book.author.name %></td>
+        <td><%= link_to 'Show', book %></td>
+        <td><%= link_to 'Edit', edit_book_path(book) %></td>
+        <td><%= link_to 'Destroy', book, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
