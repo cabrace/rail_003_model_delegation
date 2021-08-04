@@ -1,124 +1,122 @@
 
-Adding Styling :  With Bulma CSS Framework
+Model Delegation
 -----
+Building upon the previous projects rails-{001,002}-* projects we extend the functionality to show how in the `Book` Model we can gain access to the
+attributes of the `Author` Model as shown in the View because of the relational nature of the database.
 
-Terminal
-```
-yarn add bulma
-```
+> References:   
+> [Initially Found Here](https://stackoverflow.com/questions/21201407/how-can-i-take-the-result-of-a-selection-from-a-list-and-put-it-into-another-tab)   
+> [APIdock Documentation](https://apidock.com/rails/Module/delegate)  
 
-Application Layout  
-`app/views/layouts/application.html.erb`
-``` erb
- <%= stylesheet_pack_tag 'application', media: 'all', 'data-turbolinks-track': 'reload' %> 
- <%= javascript_pack_tag 'application', 'data-turbolinks-track': 'reload' %> 
-```
-Make sure we have the `stylesheet_pack_tag` instead of the `stylesheet_link_tag`. This is for `Webpacker` usage, otherwise keep it as default
-and use the `rails-bulma` gem **if** using `Sprockets` instead.
+In order to demonstrate this we will quickly apply a delegate method from the `Book` Model and delegate the necessary fields that we want to access.
 
-> in app/javascript/packs/application.scss
-``` scss
-.table.is-borderless{
-  border:0 !important;
-  border: 1px solid red;
-}
-
- //Set your brand colors
-$purple: #8A4D76;
-$purple-1: #8a4d762b;
-$pink: #FA7C91;
-$brown: #757763;
-$brown-1: #7577632e;
-$beige-light: #D0D1CD;
-$beige-lighter: #EFF0EB;
-$white: #fff;
-
-// Update Bulma's global variables
-$family-sans-serif: "Nunito", sans-serif;
-$grey-dark: $brown;
-$grey-light: $beige-light;
-$primary: $purple;
-$link: $pink;
-$widescreen-enabled: false;
-$fullhd-enabled: false;
-
-// Update some of Bulma's component variables
-$body-background-color: $beige-lighter;
-$control-border-width: 2px;
-$input-border-color: transparent;
-$input-shadow: none;
-
-.table.is-borderless td, .table.is-borderless th {
- //border: 0;
- border: 1px solid #dbdbdb;
-}
-
-
-@import "bulma"
-```
-This `application.scss` css file is created in the `app/javascript/packs` folder. Here we added a default color scheme for the application.
-Make sure the `@import "bulma"` is added **after** the styling. And that's it. Reload the Rails application and the Bulma framework along with styling should be applied.
-
-Adding Navigation
----
-Using Bulma [Tabs](https://bulma.io/documentation/components/tabs/) as a navigation header we will use the following code in a Rails `partial` section.
-
-Create the `app/views/layouts/_tabs.html.erb` section and add the following code:
-
-#### The Partial
-``` erb
-<div class="tabs has-text-primary">
-  <ul>
-    <li class="<%= is_active?(:authors) %>" >
-      <%= link_to "Authors", authors_path %>
-    </li>
-    <li class="<%= active_page?(:books) %>">
-      <%= link_to "Books", books_path %>
-    </li>
-  </ul>
-</div>
-```
-Generally we may use something like `active_link_to` gem for adding the class `active` to the resource currently being visited; however the Bulma class is applied to the parent `<li>` tag for it to work, so in this case we wil wrtite our own `ApplicationHelper` functionality as we see above with the `erb` sections that have `active_page?` and `is_active?` methods.
-
-#### ApplicationHelper 
-In the `app/helpers/application_helper.rb`
-```ruby
-module ApplicationHelper
-  #REf: https://gist.github.com/mynameispj/5692162
-  def active_page?(current_page)
-    return unless request.path.include?(current_page.to_s)
-    'is-active'
-  end
-
-  #Take your pick: these two do the same thing!
-  def is_active?(current_page)
-    return "is-active" if params[:controller] == current_page.to_s
-  end
+``` ruby
+# app/models/book.rb
+class Book < ApplicationRecord
+  belongs_to :author
+  delegate :name, to: :author, prefix: true
 end
-
 ```
 
-Note we have **two** different helpers here, abd basically they do the **same** thing, its just different ways of coding it, pick whicher looks better and name it how you like I just did both as demo purposes.
-
-Once we have the `partial` view and the `ApplicationHelper` functions created we can then add the following to the `layout` section.
-
-Generally in the `app/views/layouts/application.html.erb` may have a `body` section that looks like this
-``` erb
-  <body>
-    <header>
-      <nav>
-        <%= render "layouts/tabs" %>
-      </nav>
-    </header>
-
-    <section class="section">
-      <%= yield %>
-    </section>
-    
-    <footer>
-    </footer>
-  </body>
+Now that the `Book` Model looks like the above, we can now run the Rails console -- typing in `rails c` and test the following 
+``` irb
+# rails (c)onsole
+b = Book.first
+b.author.name
+=> "Fyodor Dostoevsky"
 ```
-Here we are using the Tabs section as a very simple navigation structure between the Model views. We will build this out and channge the sections
-once the application becomes more complicated.
+And BOOM! We have direct access to the ':name' field related to the `Author` model from the `Book` side of the relation. The we we think of it as: the `Book` is delegating the specified attributes/fields of `:name` to the `:author` to return the results to `Book`. Look into the [APIdock REF](https://apidock.com/rails/Module/delegate) for more information on the prefix, which can apparently be changed to be custom paramaters.
 
+This `b.author.name` information would **generally not** be accessible so easily, as we would have to perform a query on the `author.id` for the related books for that id using the Book model; however this method makes things a lot cleaner!
+
+To expand upon this idea we can further extend the Books-Index-View page to show the corresponding Author information as it relates to a book ID, all withing
+the relational model.
+
+#### Show related Authors from the Books-View
+```erb
+<!-- app/views/books/index.html.erb -->
+<p id="notice"><%= notice %></p>
+
+<h1 class="title">Books</h1>
+
+<div class="block">
+  <%= link_to 'New Book +', new_book_path %>
+</div>
+<table class="table is-cell-bordered no-background">
+  <thead>
+    <th colspan="2" class="has-text-centered">
+      Books
+    </th>
+    <th colspan="2" class="has-text-centered">
+      Authors
+    </th>
+
+      <th colspan ="3" rowspan="2" style="vertical-align:middle;" class="has-text-centered">Actions</th>
+    <tr>
+      <th>ID</th>
+      <th>Title</th>
+      <th>ID</th>
+      <th>Name</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @books.each do |book| %>
+      <tr>
+        <td><%= book.id %></td>
+        <td><%= book.title %></td>
+        <td><%= book.author_id %></td>
+        <td><%= book.author.name %></td>
+        <td><%= link_to 'Show', book %></td>
+        <td><%= link_to 'Edit', edit_book_path(book) %></td>
+        <td><%= link_to 'Destroy', book, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+```
+With this View we can see on the left the populated `Book` Model data as it relates to the `Author` on the Book-Index-View page. But most importantly we can call
+`book.author.name` directly from the book side of the relation!
+
+As for the other side of the relaiotn `Author` to `Book` we do not need to do anything here because `Book` already belongs to `Author` and we can just call:
+
+```irb
+a = Author.first
+a.books
+
+=> #<ActiveRecord::Associations::CollectionProxy 
+[#<Book id: 1, title: "Crime and Punishment", author_id: 1, ... >,
+#<Book id: 2, title: "The Brothers Karamazov", author_id: 1,...>
+irb(main):003:0>
+```
+to access all books related to a specific Author.
+
+#### Show related Books from the Author-Show-View
+
+```erb
+<!-- app/views/authors/show.html.erb -->
+<p id="notice"><%= notice %></p>
+
+<div class="content">
+  <div class="title">
+    <%= @author.name %>
+  </div>
+
+  <p>
+  <strong>Books:</strong>
+  </p>
+  <ol type="1">
+    <% @author.books.each do |book| %>
+      <li><%= book.title %></li>
+    <% end %>
+  </ol>
+</div>
+
+<%= link_to 'Edit', edit_author_path(@author) %> |
+<%= link_to 'Back', authors_path %>
+```
+Using the above ERB code on the authors#show view page we can see their related books, without having to add a delegate method.
+
+And that's that.
