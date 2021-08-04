@@ -1,9 +1,21 @@
 <p id="notice"><%= notice %></p>
 
-<p>
-  <strong>Name:</strong>
-  <%= @author.name %>
-</p>
+<div class="content">
+  <div class="title">
+    <%= @author.name %>
+  </div>
+  <div class="block">
+    <%= link_to 'Back', authors_path %> |
+    <%= link_to 'Edit Author', edit_author_path(@author) %> 
+  </div>
 
-<%= link_to 'Edit', edit_author_path(@author) %> |
-<%= link_to 'Back', authors_path %>
+  <p>
+  <strong>Books:</strong>
+  </p>
+  <ol type="1">
+    <% @author.books.each do |book| %>
+      <li><%= book.title %></li>
+    <% end %>
+  </ol>
+</div>
+
