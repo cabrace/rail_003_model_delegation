@@ -2,7 +2,7 @@
 Model Delegation
 -----
 Building upon the previous projects rails-{001,002}-* projects we extend the functionality to show how in the `Book` Model we can gain access to the
-attributes of the `Author` Model as shown in the View because of the relational nature of the database.
+attributes of the `Author` Model as shown in the View because of the relational nature of the database. In this example the `Book` Model is a 'child' of the `Author` as it `belongs_to` `Author` and it wan'ts to access the attributes of the Parent `Author` model. This can be achieved through `delegation`.
 
 > References:   
 > [Initially Found Here](https://stackoverflow.com/questions/21201407/how-can-i-take-the-result-of-a-selection-from-a-list-and-put-it-into-another-tab)   
