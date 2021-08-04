@@ -103,6 +103,10 @@ to access all books related to a specific Author.
   <div class="title">
     <%= @author.name %>
   </div>
+  <div class="block">
+    <%= link_to 'Back', authors_path %> |
+    <%= link_to 'Edit Author', edit_author_path(@author) %> 
+  </div>
 
   <p>
   <strong>Books:</strong>
@@ -113,9 +117,6 @@ to access all books related to a specific Author.
     <% end %>
   </ol>
 </div>
-
-<%= link_to 'Edit', edit_author_path(@author) %> |
-<%= link_to 'Back', authors_path %>
 ```
 Using the above ERB code on the authors#show view page we can see their related books, without having to add a delegate method.
 
